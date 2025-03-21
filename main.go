@@ -2,21 +2,20 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net"
-	"os"
 )
 
 func main() {
-	fmt.Println("Server is Listening on Port : 6379")
+	fmt.Println("Listening on port :6379")
 
-	//creating a new server
+	// Create a new server
 	l, err := net.Listen("tcp", ":6379")
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
-	//Listen for connections
+	// Listen for connections
 	conn, err := l.Accept()
 	if err != nil {
 		fmt.Println(err)
@@ -26,19 +25,16 @@ func main() {
 	defer conn.Close()
 
 	for {
-		buf := make([]byte, 1024)
-
-		//read the message from the client
-		_, err = conn.Read(buf)
+		resp := NewResp(conn)
+		value, err := resp.Read()
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			fmt.Println("error reading from client: ", err.Error())
-			os.Exit(1)
+			fmt.Println(err)
+			return
 		}
 
-		//ignoring request and sending back a PONG
+		fmt.Println(value)
+
+		// ignore request and send back a PONG
 		conn.Write([]byte("+OK\r\n"))
 	}
 }
